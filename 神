@@ -1,0 +1,63 @@
+-- 手机端飞行脚本（触屏+虚拟摇杆兼容）
+本地玩家=游戏：GetService(“玩家”)
+当地的UserInputService=game:GetService("UserInputService")
+本地RunService=game:GetService("RunService")
+
+本地播放器=players.LocalPlayer
+本地字符=玩家.角色或player.CharacterAdded:Wait()
+局部仿人=字符：WaitForChild("类人")
+当地的rootPart=字符：WaitForChild("HumanoidRootPart")
+
+-- 飞行开关&参数
+本地isFlying=false
+本地飞行速度=50
+局部上升速度=30
+局部下降速度=30
+
+-- 触屏绑定（双指长按/单指特定按键，按需切换）
+本地函数toggleFlight(输入，gameProcessed)
+如果gameProcessed，则返回结束
+-- 双指触摸开启/关闭（手机端优先）
+如果输入。UserInputType==枚举.UserInputType.Touch和#UserInputService:GetTouchInputs()>=2，则
+isFlying=不是isFlying
+humanoid.Fly=isFlying
+人形平台站立=正在飞行--禁用重力
+打印(isFlying和"飞行模式已开启"或"飞行模式已关闭")
+结束
+结束
+
+-- 移动控制（适配虚拟摇杆）
+本地函数handleFlight(dt)
+如果不是在飞翔，则返回结束
+local MovedIR=Vector3.new()
+    
+-- 虚拟摇杆/键盘输入
+本地leftStick=UserInputService:GetMoveVector()
+MovedIR=Vector3.New(leftStick.X，0，leftStick.Z)。单元
+
+--上升/下降（触屏：上滑/下滑，键盘：空格/左Ctrl)
+如果UserInputService:IsKeyDown(枚举.键码。空间)或UserInputService:IsGestureStarted(枚举。UserInputType。触摸，枚举.PlayerGesture.SwipeUp)，然后
+MovedIR=MovedIR+Vector3.new(0，1，0)
+elseif UserInputService:IsKeyDown(枚举.keycode.LeftControl)或UserInputService:IsGestureStarted(枚举。UserInputType。触摸，枚举.PlayerGesture.SwipeDown)，然后
+MovedIR=movedDir-Vector3.new(0，1，0)
+结束
+
+-- 飞行位移
+如果moveDir.Magnitude>0，则
+rootPart.velocity=MovedIR.Unit*(MovedIR.y>0且上升速度或moveDir.y<0且下降速度或飞行速度)
+其他
+rootPart.Velocity=Vector3.new(0，0，0)
+结束
+结束
+
+-- 绑定事件
+UserInputService.InputBegin：连接(toggleFlight)
+RunService.Heartbeat：连接(handleFlight)
+
+-- 角色重生重置
+player.CharacterAdded：连接(函数(newchar)
+character=newchar
+humanoid=字符：WaitForChild("Humanoid")
+rootPart=字符：WaitForChild("HumanoidRootPart")
+isFlying=false
+结束)
