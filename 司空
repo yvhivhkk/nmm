@@ -1,0 +1,99 @@
+-- 手机端飞行脚本（带悬浮UI启动按钮）
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- 飞行参数（可调整）
+local isFlying = false
+local flySpeed = 50
+local riseSpeed = 30
+local fallSpeed = 30
+
+-- ====================== UI创建 ======================
+local flightUI = Instance.new("ScreenGui")
+flightUI.Name = "FlightUI"
+flightUI.Parent = CoreGui -- 手机端悬浮显示，不影响游戏内其他UI
+
+-- 悬浮按钮（右侧中间位置）
+local flightBtn = Instance.new("TextButton")
+flightBtn.Name = "FlightButton"
+flightBtn.Size = UDim2.new(0, 80, 0, 80) -- 按钮大小（适配手机触屏）
+flightBtn.Position = UDim2.new(1, -90, 0.5, -40) -- 右侧中间偏移
+flightBtn.BackgroundColor3 = Color3.new(0.2, 0.6, 1) -- 蓝色底色
+flightBtn.BorderSizePixel = 2
+flightBtn.BorderColor3 = Color3.new(1, 1, 1)
+flightBtn.Text = "飞行\n开启"
+flightBtn.TextColor3 = Color3.new(1, 1, 1)
+flightBtn.TextSize = 16
+flightBtn.Font = Enum.Font.SourceSansBold
+flightBtn.CornerRadius = UDim.new(0.5, 0) -- 圆形按钮
+flightBtn.Parent = flightUI
+
+-- 状态提示文本
+本地statusText=Instance.new("TextLabel")
+statusText.Name="StatusText"
+statusText.Size=UDim2.new(0，150，0，30)
+statusText.Position=UDim2.new(1，-250，0.5，-70)--按钮上方
+statusText.BackgroundTransparency=1
+statusText.Text="未开启飞行"
+statusText.TextColor3=Color3.new(1，1，1)
+statusText.TextSize=14
+statusText.Font=枚举.Font.SourceSans
+statusText.Parent=flightUI
+
+--======================功能逻辑======================
+-- 按钮点击开关飞行
+flightBtn.鼠标按钮1单击：连接(函数()
+isFlying=不是isFlying
+humanoid.Fly=isFlying
+humanoid.PlatformStand=is Flying--禁用重力
+--更新UI状态
+flightBtn.Text=isFlying and"飞行\n关闭"或"飞行\n开启"
+flightBtn.BroundColor3=isFlightingandColor3。新的(1.0.3，0.3)或Color3.New(0.2，0.6，1)
+statusText.Text=isFlying和"飞行模式已开启"或"飞行模式已关闭"
+结束)
+
+-- 移动控制（虚拟摇杆+触屏滑动）
+本地函数handleFlight(dt)
+如果不是在飞翔，则返回结束
+local MovedIR=Vector3.new()
+
+-- 虚拟摇杆控制前后左右
+本地leftStick=UserInputService:GetMoveVector()
+MovedIR=Vector3.New(leftStick.X，0，leftStick.Z)。单元
+
+-- 上滑上升/下滑下降（触屏兼容）
+如果UserInputService:IsKeyDown(枚举.键码。空间)或UserInputService:IsGestureStarted(枚举。UserInputType。触摸，枚举.PlayerGesture.SwipeUp)，然后
+MovedIR=MovedIR+Vector3.new(0，1，0)
+elseif UserInputService:IsKeyDown(枚举.keycode.LeftControl)或UserInputService:IsGestureStarted(枚举。UserInputType。触摸，枚举.PlayerGesture.SwipeDown)，然后
+MovedIR=MovedIR-矢量3.new(0，1，0)
+结束
+
+-- 应用飞行速度
+如果moveDir.Magnitude>0，则
+rootPart.velocity=MovedIR.Unit*(MovedIR.y>0且上升速度或moveDir.y<0且下降速度或飞行速度)
+其他
+rootPart.Velocity=Vector3.new(0，0，0)
+结束
+结束
+
+-- 角色重生重置
+运动员。添加的字符：连接(函数(newchar)
+character=newchar
+humanoid=字符：WaitForChild("Humanoid")
+rootPart=字符：WaitForChild("HumanoidRootPart")
+isFlying=false
+--重置UI状态
+flightBtn.Text="飞行\n开启"
+flightBtn.BackgroundColor3=Color3.New(0.2，0，6，1)
+statusText.Text="未开启飞行"
+结束)
+
+-- 绑定帧更新事件
+RunService.Heartbeat：连接(handleFlight)
